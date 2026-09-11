@@ -1,0 +1,36 @@
+## Initial Domain Model
+```mermaid
+classDiagram
+    class Developer {
+        name
+    }
+
+    class Workspace {
+        name
+    }
+
+    class Folder {
+        path
+    }
+
+    class Document {
+        name
+        language
+    }
+
+    class Extension {
+        identifier
+        version
+    }
+
+    class Command {
+        title
+    }
+
+    Developer "0..*" --> "0..*" Workspace : opens
+    Workspace "1" --> "1..*" Folder : contains
+    Folder "1" --> "0..*" Document : contains
+    Developer "0..*" --> "0..*" Extension : installs
+    Extension "1" --> "0..*" Command : contributes
+    Developer "0..*" --> "0..*" Command : invokes
+```
