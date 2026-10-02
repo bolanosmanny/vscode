@@ -1,9 +1,5 @@
 # Logical Architecture
 
-**Project:** Visual Studio Code  
-**Course:** CSCI 360, Fall 2026  
-**Editable diagram sources:** [architecture](https://github.com/bolanosmanny/vscode/blob/main/docs/logical-architecture.mmd), [workspace search](https://github.com/bolanosmanny/vscode/blob/main/docs/search-workspace-interaction.mmd), [Git commit](https://github.com/bolanosmanny/vscode/blob/main/docs/commit-source-changes-interaction.mmd). These links resolve after the files are committed to `main`.
-
 ## 1. Architectural style
 
 VS Code is a **hybrid of layered and extension based architecture**. The main source tree separates foundation code in `src/vs/base`, services and dependency injection in `src/vs/platform`, editor code in `src/vs/editor`, and user facing features and services in `src/vs/workbench`; for example, [`searchView.ts`](https://github.com/bolanosmanny/vscode/blob/main/src/vs/workbench/contrib/search/browser/searchView.ts#L72) imports the workbench search service, editor modules, platform services, and base utilities, while [`searchService.ts`](https://github.com/bolanosmanny/vscode/blob/main/src/vs/workbench/services/search/common/searchService.ts#L17) imports editor, platform, and base modules, and [`fileService.ts`](https://github.com/bolanosmanny/vscode/blob/main/src/vs/platform/files/common/fileService.ts#L6) imports base utilities. The built-in `extensions/git/src` subtree is an extension: [`commands.ts`](https://github.com/bolanosmanny/vscode/blob/main/extensions/git/src/commands.ts#L8) imports the `vscode` API and its own `repository.ts`, which imports the lower-level `git.ts` wrapper. This is not a strict textbook stack: the Search view also imports and traverses the sibling SCM feature, as documented below.
@@ -205,7 +201,3 @@ changedFileUris = [...this.scmService.repositories]
     .flatMap(group => group.resources)
     .map(resource => resource.sourceUri);
 ```
-
-## 6. Ninety-second class walkthrough
-
-Open this page before class. **0–25 seconds:** show the architecture diagram and say, “VS Code uses layered core code plus a built-in extension model; the workbench imports editor, platform, and base code.” **25–60 seconds:** show the Search Workspace interaction diagram; explain that the previous SSD’s one system call becomes `SearchView` → `QueryBuilder` → `SearchModelImpl` → `SearchService`, with results fed back through `SearchResultImpl`. **60–90 seconds:** point to the Search-to-SCM arrow and the code in section 4; explain that Search view traverses SCM resource groups itself, so SCM model changes can force search UI and test changes.
