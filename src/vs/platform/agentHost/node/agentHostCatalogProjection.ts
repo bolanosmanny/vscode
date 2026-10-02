@@ -301,6 +301,7 @@ const sourceControlValidator = new RefinedValidator(plainObject(vObj({
 
 const artifactValidator = plainObject(vObj({
 	id: boundedString(),
+	chat: vOptionalProp(boundedString()),
 	type: vEnum('pullRequest', 'issue', 'commit', 'website', 'file', 'resource'),
 	label: boundedString(AGENT_HOST_CATALOG_TITLE_LENGTH_LIMIT),
 	isArtifact: vOptionalProp(vBoolean()),
@@ -375,6 +376,7 @@ const chatValidator = plainObject(vObj({
 	titleSource: vOptionalProp(vEnum('user', 'agent', 'auto')),
 	origin: vOptionalProp(jsonValue()),
 	interactivity: vOptionalProp(vEnum(ChatInteractivity.Full, ChatInteractivity.ReadOnly, ChatInteractivity.Hidden)),
+	archived: vOptionalProp(vBoolean()),
 	inheritedTurnId: vOptionalProp(boundedString(AGENT_HOST_CATALOG_JSON_STRING_LENGTH_LIMIT)),
 	workingDirectories: vOptionalProp(workingDirectoriesValidator),
 }));

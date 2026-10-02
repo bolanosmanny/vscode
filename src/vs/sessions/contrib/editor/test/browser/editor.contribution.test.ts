@@ -45,7 +45,7 @@ import { NewBrowserTabAction, NewChangesTabAction, NewFileTabAction, NewSearchTa
 import { EmptyFileEditorInput, EmptyFileEditorSerializer } from '../../browser/emptyFileEditorInput.js';
 import { EditorTabsVisibleContext, IsAuxiliaryWindowContext, IsSessionsWindowContext, IsTopRightEditorGroupContext } from '../../../../../workbench/common/contextkeys.js';
 import { TestEnvironmentService, TestLayoutService } from '../../../../../workbench/test/browser/workbenchTestServices.js';
-import { IsQuickChatSessionContext, SinglePaneChangesTabAvailableContext, SinglePaneChangesTabMissingContext, SinglePaneFilesTabAvailableContext, SinglePaneFilesTabMissingContext } from '../../../../common/contextkeys.js';
+import { IsQuickChatSessionContext, DesktopChangesTabAvailableContext, DesktopChangesTabMissingContext, DesktopFilesTabAvailableContext, DesktopFilesTabMissingContext } from '../../../../common/contextkeys.js';
 
 // Import editor contribution to trigger action registration.
 import { SessionsTabStyleContribution } from '../../browser/editor.contribution.js';
@@ -176,30 +176,45 @@ suite('Sessions - Editor Contribution', () => {
 		}
 	});
 
-	test('uses one HC group frame with or without docked details', () => {
+	test('uses one connected group frame with or without docked details', () => {
 		const workbench = appendElement(mainWindow.document.body, 'monaco-workbench modern-ui-tabs modern-ui-connected-editor-tabs agent-sessions-workbench dock-detail-panel');
 		workbench.style.setProperty('--vscode-agentsPanel-border', '#888888');
+		workbench.style.setProperty('--vscode-editorGroupHeader-tabsBorder', '#445566');
+		workbench.style.setProperty('--vscode-cornerRadius-large', '8px');
 		workbench.style.setProperty('--vscode-strokeThickness', '1px');
 		workbench.style.setProperty('--vscode-focusBorder', '#00ff00');
 		workbench.style.setProperty('--vscode-contrastBorder', '#888888');
-		const editor = appendElement(workbench, 'part editor editor-tabs-multiple');
+		const editor = appendElement(appendElement(workbench, 'monaco-grid-view'), 'part editor editor-tabs-multiple');
 		const group = appendElement(appendElement(editor, 'content'), 'editor-group-container active');
 		try {
+			const getBorders = () => {
+				const frame = mainWindow.getComputedStyle(group, '::after');
+				return {
+					outerBorder: mainWindow.getComputedStyle(editor).borderColor,
+					frameWidth: frame.borderWidth,
+					frameColor: frame.borderColor,
+					frameRadius: frame.borderRadius,
+				};
+			};
 			const borders = [];
-			for (const theme of ['vs-dark', 'vs', 'hc-black', 'hc-light']) {
+			const themes = ['vs-dark', 'vs', 'hc-black', 'hc-light'];
+			for (const theme of themes) {
 				workbench.classList.add(theme);
 				workbench.classList.remove('noauxiliarybar');
-				const docked = mainWindow.getComputedStyle(editor).borderTopColor;
+				const docked = getBorders();
 				workbench.classList.add('noauxiliarybar');
-				borders.push({ theme, docked, editorOnly: mainWindow.getComputedStyle(editor).borderTopColor, groupFrame: mainWindow.getComputedStyle(group, '::after').borderLeftWidth });
+				borders.push({ theme, docked, editorOnly: getBorders() });
 				workbench.classList.remove(theme);
 			}
-			assert.deepStrictEqual(borders, [
-				{ theme: 'vs-dark', docked: 'rgb(136, 136, 136)', editorOnly: 'rgb(136, 136, 136)', groupFrame: '0px' },
-				{ theme: 'vs', docked: 'rgb(136, 136, 136)', editorOnly: 'rgb(136, 136, 136)', groupFrame: '0px' },
-				{ theme: 'hc-black', docked: 'rgba(0, 0, 0, 0)', editorOnly: 'rgba(0, 0, 0, 0)', groupFrame: '1px' },
-				{ theme: 'hc-light', docked: 'rgba(0, 0, 0, 0)', editorOnly: 'rgba(0, 0, 0, 0)', groupFrame: '1px' },
-			]);
+			assert.deepStrictEqual(borders, themes.map(theme => {
+				const expected = {
+					outerBorder: 'rgba(0, 0, 0, 0)',
+					frameWidth: '1px',
+					frameColor: theme.startsWith('hc-') ? 'rgb(0, 255, 0)' : 'rgb(68, 85, 102)',
+					frameRadius: '7px',
+				};
+				return { theme, docked: expected, editorOnly: expected };
+			}));
 		} finally {
 			workbench.remove();
 		}
@@ -437,7 +452,7 @@ suite('Sessions - Editor Contribution', () => {
 			[IsTopRightEditorGroupContext.key]: true,
 		};
 		const scenarios = (availableKey: string, missingKey: string) => {
-			const when = availableKey === SinglePaneFilesTabAvailableContext.key
+			const when = availableKey === DesktopFilesTabAvailableContext.key
 				? getWhen(new NewFileTabAction())
 				: getWhen(new NewChangesTabAction());
 			return {
@@ -450,8 +465,8 @@ suite('Sessions - Editor Contribution', () => {
 		};
 
 		assert.deepStrictEqual({
-			files: scenarios(SinglePaneFilesTabAvailableContext.key, SinglePaneFilesTabMissingContext.key),
-			changes: scenarios(SinglePaneChangesTabAvailableContext.key, SinglePaneChangesTabMissingContext.key),
+			files: scenarios(DesktopFilesTabAvailableContext.key, DesktopFilesTabMissingContext.key),
+			changes: scenarios(DesktopChangesTabAvailableContext.key, DesktopChangesTabMissingContext.key),
 			searchInDockOnly: evaluate(getWhen(new NewSearchTabAction()), baseContext),
 			searchInQuickChat: evaluate(getWhen(new NewSearchTabAction()), { ...baseContext, [IsQuickChatSessionContext.key]: true }),
 		}, {
@@ -470,15 +485,15 @@ suite('Sessions - Editor Contribution', () => {
 		const values: Record<string, ContextKeyValue> = {
 			[IsSessionsWindowContext.key]: true,
 			[IsAuxiliaryWindowContext.key]: false,
-			[SinglePaneChangesTabAvailableContext.key]: true,
+			[DesktopChangesTabAvailableContext.key]: true,
 		};
 		const context: IContext = {
 			getValue: <T extends ContextKeyValue>(key: string) => values[key] as T | undefined
 		};
 
 		assert.deepStrictEqual({
-			preconditionHasAvailability: precondition.includes(SinglePaneChangesTabAvailableContext.key),
-			keybindingHasAvailability: when.includes(SinglePaneChangesTabAvailableContext.key),
+			preconditionHasAvailability: precondition.includes(DesktopChangesTabAvailableContext.key),
+			keybindingHasAvailability: when.includes(DesktopChangesTabAvailableContext.key),
 			preconditionEnabled: action.desc.precondition?.evaluate(context),
 			keybindingEnabled: keybinding?.when?.evaluate(context),
 		}, {
