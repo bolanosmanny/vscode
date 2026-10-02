@@ -1,0 +1,45 @@
+flowchart TB
+    subgraph Workbench["Workbench and feature layer — src/vs/workbench"]
+        SearchUI["contrib/search/browser"]
+        DebugUI["contrib/debug/browser"]
+        SCMUI["contrib/scm"]
+        SearchSvc["services/search/common"]
+        DebugCommon["contrib/debug/common"]
+    end
+
+    subgraph Editor["Editor layer — src/vs/editor"]
+        EditorBrowser["browser"]
+        EditorModel["common/services"]
+    end
+
+    subgraph Platform["Platform services — src/vs/platform"]
+        Files["files/common"]
+        Workspace["workspace/common"]
+        Instantiation["instantiation/common"]
+    end
+
+    Base["Foundation — src/vs/base/common and browser"]
+
+    subgraph Extension["Built-in Git extension — extensions/git/src"]
+        GitCommands["commands.ts"]
+        GitRepository["repository.ts"]
+        GitProcess["git.ts"]
+    end
+    API["Extension API contract — src/vscode-dts/vscode.d.ts"]
+
+    SearchUI -->|imports| SearchSvc
+    SearchUI -->|imports| SCMUI
+    DebugUI -->|imports| DebugCommon
+    SearchSvc -->|imports| EditorModel
+    SearchSvc -->|imports| Files
+    SearchUI -->|imports| Workspace
+    DebugUI -->|imports| EditorBrowser
+    EditorBrowser -->|imports| Instantiation
+    EditorModel -->|imports| Instantiation
+    Files -->|imports| Base
+    SearchSvc -->|imports| Base
+    GitCommands -->|imports| GitRepository
+    GitRepository -->|imports| GitProcess
+    GitCommands -->|imports vscode| API
+    GitRepository -->|imports vscode| API
+    GitProcess -->|imports vscode| API

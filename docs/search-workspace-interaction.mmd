@@ -1,0 +1,40 @@
+sequenceDiagram
+    participant V as SearchView
+    participant Q as QueryBuilder
+    participant M as SearchModelImpl
+    participant S as SearchService
+    participant R as SearchResultImpl
+
+    Note over V: A user submits search text and include/exclude patterns.
+    V->>V: triggerQueryChange()
+    V->>V: _onQueryChanged(...)
+    alt valid, nonempty input
+        V->>Q: text(contentPattern, folderUris, options)
+        Q-->>V: ITextQuery
+        V->>V: validateQuery(query)
+        V->>V: onQueryTriggered(...) → doSearch(...)
+        V->>M: search(query)
+        M->>M: cancelSearch(true)
+        M->>S: textSearchSplitSyncAsync(query, token, onProgress, ...)
+        S->>S: getOpenEditorResults(query)
+        Note over S: Async branch dispatches to a registered search provider.
+        S-->>M: { syncResults, asyncResults }
+        loop each synchronous or streamed file match
+            S-->>M: onProgress(fileMatch) callback
+            M->>M: onSearchProgress(fileMatch, ...)
+            M->>R: add(queuedMatches, searchInstanceID, false, ...)
+            R-->>M: onChange(event)
+            M-->>V: onSearchResultChanged(event)
+            V->>V: onSearchResultsChanged(event)
+        end
+        M-->>V: { syncResults, asyncResults }
+        S-->>M: asyncResults resolves with ISearchComplete
+        M->>M: onSearchCompleted(...)
+        M->>R: add(remainingMatches, searchInstanceID, false)
+        M-->>V: asyncResults resolves with ISearchComplete
+        V->>V: onSearchComplete(...)
+        V->>R: count() and fileCount()
+        R-->>V: result and file counts
+    else invalid or empty input
+        V->>V: show validation error or clearSearchResults()
+    end

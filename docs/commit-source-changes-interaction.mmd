@@ -1,0 +1,36 @@
+sequenceDiagram
+    participant C as CommandCenter
+    participant R as Repository (repository.ts)
+    participant B as Repository (git.ts)
+    participant G as Git
+    participant P as CommitCommandsCenter
+
+    Note over C: The registered git.commit command supplies a repository.
+    C->>C: commit(repository)
+    C->>C: commitWithAnyInput(repository, options)
+    C->>C: smartCommit(repository, getCommitMessage, options)
+    alt dirty files or no staged changes need a decision
+        Note over C: May prompt, save and stage files, or cancel.
+    end
+    alt message available and commit checks pass
+        C->>R: commit(message, options)
+        R->>R: run(Operation.Commit, callback, ...)
+        opt commit all requested
+            R->>B: add([], addOptions)
+            B-->>R: void
+        end
+        R->>B: commit(message, options)
+        B->>B: build git commit arguments
+        B->>B: exec(args, options)
+        B->>G: exec(repositoryRoot, args, options)
+        G-->>B: IExecutionResult
+        B-->>R: void
+        R->>R: commitOperationCleanup(...)
+        R->>R: updateModelState(...)
+        R->>P: executePostCommitCommand(options.postCommitCommand)
+        Note over P: Runs a configured follow-up command when present.
+        P-->>R: void
+        R-->>C: void
+    else canceled or rejected
+        Note over C: Returns without committing.
+    end
