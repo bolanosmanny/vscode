@@ -362,6 +362,16 @@ export class SCMService implements ISCMService {
 	_repositories = new Map<string, ISCMRepository>();  // used in tests
 	get repositories(): Iterable<ISCMRepository> { return this._repositories.values(); }
 	get repositoryCount(): number { return this._repositories.size; }
+	hasChangedFiles(): boolean {
+		return [...this.repositories].some(repository => repository.provider.groups.some(group => group.resources.length > 0));
+	}
+
+	getChangedFileUris(): URI[] {
+		return [...this.repositories]
+			.flatMap(repository => repository.provider.groups)
+			.flatMap(group => group.resources)
+			.map(resource => resource.sourceUri);
+	}
 
 	private inputHistory: SCMInputHistory;
 	private providerCount: IContextKey<number>;

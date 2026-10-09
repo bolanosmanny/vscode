@@ -306,9 +306,7 @@ export class SearchView extends ViewPane {
 		this._register(this.configurationService.onDidChangeConfiguration(e => this.onConfigurationUpdated(e)));
 
 		const updateChangedFilesToggleEnabled = () => {
-			const hasChanges = [...this.scmService.repositories].some(
-				repo => repo.provider.groups.some(group => group.resources.length > 0)
-			);
+			const hasChanges = this.scmService.hasChangedFiles();
 			this.inputPatternIncludes?.setOnlySearchInChangedFilesEnabled(hasChanges);
 		};
 		const scmRepositoryListeners = this._register(new DisposableMap<ISCMRepository>());
@@ -549,9 +547,7 @@ export class SearchView extends ViewPane {
 
 		this.inputPatternIncludes.setValue(patternIncludes);
 		this.inputPatternIncludes.setOnlySearchInOpenEditors(onlyOpenEditors);
-		this.inputPatternIncludes.setOnlySearchInChangedFilesEnabled(
-			[...this.scmService.repositories].some(repo => repo.provider.groups.some(group => group.resources.length > 0))
-		);
+		this.inputPatternIncludes.setOnlySearchInChangedFilesEnabled(this.scmService.hasChangedFiles());
 
 		this._register(this.inputPatternIncludes.onCancel(() => this.cancelSearch(false)));
 		this._register(this.inputPatternIncludes.onChangeSearchInEditorsBox(() => this.triggerQueryChange()));
@@ -1651,13 +1647,7 @@ export class SearchView extends ViewPane {
 		const excludePattern = [{ pattern: this.inputPatternExcludes.getValue() }];
 		const includePattern = this.inputPatternIncludes.getValue();
 
-		let changedFileUris: URI[] | undefined;
-		if (onlySearchInChangedFiles) {
-			changedFileUris = [...this.scmService.repositories]
-				.flatMap(repository => repository.provider.groups)
-				.flatMap(group => group.resources)
-				.map(resource => resource.sourceUri);
-		}
+		const changedFileUris = onlySearchInChangedFiles ? this.scmService.getChangedFileUris() : undefined;
 
 		// Need the full match line to correctly calculate replace text, if this is a search/replace with regex group references ($1, $2, ...).
 		// 10000 chars is enough to avoid sending huge amounts of text around, if you do a replace with a longer match, it may or may not resolve the group refs correctly.

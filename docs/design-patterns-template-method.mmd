@@ -1,0 +1,24 @@
+classDiagram
+    class QuickDiffProvider {
+        <<interface>>
+        +provideOriginalResource?(uri: Uri, token: CancellationToken) ProviderResult~Uri~
+    }
+    class AbstractGitQuickDiffProvider {
+        +provideOriginalResource(uri: Uri) Promise~Uri or undefined~
+        #isCandidate(uri: Uri) boolean
+        #isEligible(uri: Uri) Promise~boolean~ or boolean
+        #originalRef: string
+    }
+    class GitQuickDiffProvider {
+        #isCandidate(uri: Uri) boolean
+        #isEligible(uri: Uri) Promise~boolean~
+        #originalRef: string
+    }
+    class StagedResourceQuickDiffProvider {
+        #isCandidate(uri: Uri) boolean
+        #isEligible(uri: Uri) boolean
+        #originalRef: string
+    }
+    QuickDiffProvider <|.. AbstractGitQuickDiffProvider
+    AbstractGitQuickDiffProvider <|-- GitQuickDiffProvider
+    AbstractGitQuickDiffProvider <|-- StagedResourceQuickDiffProvider

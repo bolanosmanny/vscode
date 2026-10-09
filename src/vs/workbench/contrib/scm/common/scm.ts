@@ -184,6 +184,8 @@ export interface ISCMService {
 	readonly onDidRemoveRepository: Event<ISCMRepository>;
 	readonly repositories: Iterable<ISCMRepository>;
 	readonly repositoryCount: number;
+	hasChangedFiles(): boolean;
+	getChangedFileUris(): URI[];
 
 	registerSCMProvider(provider: ISCMProvider): ISCMRepository;
 

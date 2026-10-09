@@ -1,0 +1,20 @@
+classDiagram
+    class ExtHostSearch {
+        -_textSearchProvider: Map~number, vscode.TextSearchProvider2~
+        +registerTextSearchProviderOld(scheme: string, provider: vscode.TextSearchProvider) IDisposable
+    }
+    class TextSearchProvider2 {
+        <<interface>>
+        +provideTextSearchResults(query: TextSearchQuery2, options: TextSearchProviderOptions, progress: IProgress~TextSearchResult2~, token: CancellationToken) ProviderResult~TextSearchComplete2~
+    }
+    class OldTextSearchProviderConverter {
+        -provider: TextSearchProvider
+        +provideTextSearchResults(query: TextSearchQuery2, options: TextSearchProviderOptions, progress: IProgress~TextSearchResult2~, token: CancellationToken) ProviderResult~TextSearchComplete2~
+    }
+    class TextSearchProvider {
+        <<interface>>
+        +provideTextSearchResults(query: TextSearchQuery, options: TextSearchOptions, progress: IProgress~TextSearchResult~, token: CancellationToken) ProviderResult~TextSearchComplete~
+    }
+    ExtHostSearch --> OldTextSearchProviderConverter : constructs and stores by handle
+    TextSearchProvider2 <|.. OldTextSearchProviderConverter
+    OldTextSearchProviderConverter --> TextSearchProvider : converts options and results

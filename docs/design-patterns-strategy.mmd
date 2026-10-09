@@ -1,0 +1,23 @@
+classDiagram
+    class SearchService {
+        -textSearchProviders: Map~string, ISearchResultProvider~
+        +registerSearchResultProvider(scheme: string, type: SearchProviderType, provider: ISearchResultProvider) IDisposable
+        +textSearch(query: ITextQuery, token?: CancellationToken, onProgress?: Function) Promise~ISearchComplete~
+    }
+    class ISearchResultProvider {
+        <<interface>>
+        +textSearch(query: ITextQuery, onProgress?: Function, token?: CancellationToken) Promise~ISearchComplete~
+        +fileSearch(query: IFileQuery, token?: CancellationToken) Promise~ISearchComplete~
+        +clearCache(cacheKey: string) Promise~void~
+    }
+    class LocalFileSearchWorkerClient {
+        +textSearch(query: ITextQuery, onProgress?: Function, token?: CancellationToken) Promise~ISearchComplete~
+        +fileSearch(query: IFileQuery, token?: CancellationToken) Promise~ISearchComplete~
+    }
+    class RemoteSearchProvider {
+        +textSearch(query: ITextQuery, onProgress?: Function, token?: CancellationToken) Promise~ISearchComplete~
+        +fileSearch(query: IFileQuery, token?: CancellationToken) Promise~ISearchComplete~
+    }
+    SearchService --> ISearchResultProvider : registers and selects by scheme
+    ISearchResultProvider <|.. LocalFileSearchWorkerClient
+    ISearchResultProvider <|.. RemoteSearchProvider

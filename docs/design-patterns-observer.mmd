@@ -1,0 +1,22 @@
+classDiagram
+    class SearchResultImpl {
+        -_onChange: PauseableEmitter~IChangeEvent~
+        +onChange: Event~IChangeEvent~
+        +add(allRaw: IFileMatch[], searchInstanceID: string, ai: boolean, silent?: boolean) void
+    }
+    class SearchModelImpl {
+        -_onSearchResultChanged: PauseableEmitter~IChangeEvent~
+        +onSearchResultChanged: Event~IChangeEvent~
+        +id() string
+    }
+    class ISearchModel {
+        <<interface>>
+        +onSearchResultChanged: Event~IChangeEvent~
+    }
+    class SearchView {
+        -_onSearchResultChangedDisposable: IDisposable
+        -onSearchResultsChanged(event?: IChangeEvent) Promise~void~
+    }
+    ISearchModel <|.. SearchModelImpl
+    SearchModelImpl --> SearchResultImpl : creates and subscribes to onChange
+    SearchView --> ISearchModel : subscribes to onSearchResultChanged
