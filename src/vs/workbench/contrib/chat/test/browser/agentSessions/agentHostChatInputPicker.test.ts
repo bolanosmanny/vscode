@@ -109,6 +109,9 @@ suite('AgentHostChatInputPicker - combined mode and permissions', () => {
 				const result = super.inspect<T>(key);
 				return { ...result, policyValue: this.policyRestricted && key === ChatConfiguration.GlobalAutoApprove ? result.value : undefined };
 			}
+			override updateValue(key: string, value: unknown): Promise<void> {
+				return this.setUserConfiguration(key, value);
+			}
 		}({
 			[ChatConfiguration.ExperimentalModePermissionsPicker]: combined,
 			[ChatConfiguration.GlobalAutoApprove]: false,
@@ -325,6 +328,20 @@ suite('AgentHostChatInputPicker - combined mode and permissions', () => {
 		}, {
 			hidden: 'none', generic: ['autoApprove'],
 		});
+	});
+
+	test('hides the input request timeout picker without hiding other host options', () => {
+		const schema: SessionConfigPropertySchema = {
+			type: 'string', title: 'Question timeout', enum: ['5m', '4h', 'none'], default: '5m', sessionMutable: true,
+		};
+
+		assert.deepStrictEqual([false, true].map(isStartedSession => ({
+			timeout: isGenericConfigPickerProperty('inputRequestTimeout', schema, isStartedSession),
+			other: isGenericConfigPickerProperty('customChoice', schema, isStartedSession),
+		})), [
+			{ timeout: false, other: true },
+			{ timeout: false, other: true },
+		]);
 	});
 
 	test('never exposes the pull request URL as a generic config chip', () => {
@@ -1003,6 +1020,23 @@ suite('AgentHostChatInputPicker - combined mode and permissions', () => {
 	});
 
 	for (const combined of [false, true]) {
+		test(`turns off global auto approve when selecting lower permissions (${combined ? 'combined' : 'separate'} picker)`, async () => {
+			const { modePicker, permissionPicker, configuration, config, actionWidget, dispatches } = setup(combined);
+			await configuration.setUserConfiguration(ChatConfiguration.GlobalAutoApprove, true);
+			config.values.autoApprove = 'autoApprove';
+			const picker = combined ? modePicker : permissionPicker;
+			await picker['_showPicker'](document.createElement('div'), combined);
+			await actionWidget.select('Manual permissions');
+
+			assert.deepStrictEqual({
+				globalAutoApprove: configuration.getValue(ChatConfiguration.GlobalAutoApprove),
+				dispatches,
+			}, {
+				globalAutoApprove: false,
+				dispatches: [{ type: ActionType.SessionConfigChanged, config: { autoApprove: 'default' } }],
+			});
+		});
+
 		test(`offers experimental Assisted permissions without an opt-in setting (${combined ? 'combined' : 'separate'} picker)`, async () => {
 			const { modePicker, permissionPicker, configuration, config, actionWidget, dispatches } = setup(combined);
 			await configuration.setUserConfiguration('chat.assistedPermissions.enabled', false);

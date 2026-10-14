@@ -25,6 +25,7 @@ import { IAgentHostGitStateService } from '../common/agentHostGitStateService.js
 import { IAgentHostReviewService } from '../common/agentHostReviewService.js';
 import { IAgentHostSubscriptionService } from '../common/agentHostSubscriptionService.js';
 import { CopilotApiService, ICopilotApiService } from './shared/copilotApiService.js';
+import { AgentHostUtilityModelService, IAgentHostUtilityModelService } from './agentHostUtilityModelService.js';
 import { AgentHostFileMonitorService, IAgentHostFileMonitorService } from './agentHostFileMonitorService.js';
 import { AgentHostGitService } from './agentHostGitService.js';
 import { AgentPluginManager } from './agentPluginManager.js';
@@ -33,6 +34,7 @@ import { IByokLmBridgeRegistry } from './byokLmBridgeRegistry.js';
 import { ClaudeAgentSdkService, IClaudeAgentSdkService } from './claude/claudeAgentSdkService.js';
 import { ClaudeProxyService, IClaudeProxyService } from './claude/claudeProxyService.js';
 import { ByokLmProxyService, IByokLmProxyService, NullByokLmProxyService } from './copilot/byokLmProxyService.js';
+import { ILocalModelSetupService, LocalModelSetupService, NullLocalModelSetupService } from './copilot/localModelBridge/localModelSetupService.js';
 import { CodexProxyService, ICodexProxyService } from './codex/codexProxyService.js';
 import { NodeWorkerDiffComputeService } from './diffComputeService.js';
 import { NetworkDiagnosticsService, INetworkDiagnosticsService } from './networkDiagnosticsService.js';
@@ -41,6 +43,7 @@ import { AgentHostChangesetOperationService } from './agentHostChangesetOperatio
 import { AgentHostChangesetService } from './agentHostChangesetService.js';
 import { AgentHostChangesetSubscriptionService } from './agentHostChangesetSubscriptionService.js';
 import { AgentHostChatContributions } from './agentHostChatContributionsService.js';
+import { AgentHostChatOwnershipService, IAgentHostChatOwnershipService } from './agentHostChatOwnershipService.js';
 import { AgentHostDatabase, IAgentHostDatabase } from './agentHostDatabase.js';
 import { AgentSessionRegistry, IAgentSessionRegistry } from './agentSessionRegistry.js';
 import { AgentHostCheckpointService } from './agentHostCheckpointService.js';
@@ -108,6 +111,7 @@ export function registerAgentHostCoreServices(services: ServiceCollection, input
 	services.set(IAgentHostSessionOpenTelemetry, new SyncDescriptor(AgentHostSessionOpenTelemetry));
 	services.set(IAgentHostChangesetSubscriptionService, new SyncDescriptor(AgentHostChangesetSubscriptionService));
 	services.set(IAgentHostPullRequestStatusService, new SyncDescriptor(AgentHostPullRequestStatusService));
+	services.set(IAgentHostChatOwnershipService, new SyncDescriptor(AgentHostChatOwnershipService));
 	services.set(IAgentHostSubscriptionService, new SyncDescriptor(AgentHostSubscriptionService));
 	services.set(IAgentHostChangesetOperationService, new SyncDescriptor(AgentHostChangesetOperationService));
 	services.set(IAgentHostReviewService, new SyncDescriptor(AgentHostReviewService));
@@ -133,6 +137,8 @@ export interface IAgentHostHostServiceInputs {
 	readonly userDataPath: URI;
 	readonly fetchFn: typeof globalThis.fetch;
 	readonly byok: { readonly kind: 'renderer'; readonly bridgeRegistry: IByokLmBridgeRegistry } | { readonly kind: 'unavailable' };
+	/** On-device models run only in the local utility-process host; other hosts get the null implementation. */
+	readonly localModel?: { readonly kind: 'localUtilityProcess' } | { readonly kind: 'unavailable' };
 }
 
 export function registerAgentHostHostServices(services: ServiceCollection, inputs: IAgentHostHostServiceInputs): void {
@@ -145,8 +151,13 @@ export function registerAgentHostHostServices(services: ServiceCollection, input
 	services.set(IClaudeProxyService, new SyncDescriptor(ClaudeProxyService));
 	services.set(ICodexProxyService, new SyncDescriptor(CodexProxyService, [undefined]));
 	services.set(IAgentHostOTelService, new SyncDescriptor(AgentHostOTelService, [{ fetchFn: inputs.fetchFn }]));
+	services.set(IAgentHostUtilityModelService, new SyncDescriptor(AgentHostUtilityModelService, [inputs.byok.kind === 'renderer']));
 	services.set(
 		IByokLmProxyService,
 		inputs.byok.kind === 'renderer' ? new SyncDescriptor(ByokLmProxyService) : new NullByokLmProxyService(),
+	);
+	services.set(
+		ILocalModelSetupService,
+		inputs.localModel?.kind === 'localUtilityProcess' ? new SyncDescriptor(LocalModelSetupService) : new NullLocalModelSetupService(),
 	);
 }
