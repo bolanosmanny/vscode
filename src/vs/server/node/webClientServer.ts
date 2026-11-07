@@ -128,9 +128,18 @@ export function renderWorkbenchTemplate(template: string, values: Record<string,
  * change the origin of a redirect or smuggle a query, fragment or control character are rejected.
  */
 export function isSafeBasePath(basePath: string): boolean {
-	return basePath.startsWith('/')
-		&& !basePath.startsWith('//')
-		&& !/[?#\\]|[\u0000-\u001F\u007F]/.test(basePath);
+	if (!basePath.startsWith('/') || basePath.startsWith('//') || /%(?:2f|5c)/i.test(basePath)) {
+		return false;
+	}
+
+	try {
+		const decodedPath = decodeURIComponent(basePath);
+		return !decodedPath.startsWith('//')
+			&& !/[?#\\%]|[\u0000-\u001F\u007F]/.test(decodedPath)
+			&& !/(?:^|\/)\.{1,2}(?:\/|$)/.test(decodedPath);
+	} catch {
+		return false;
+	}
 }
 
 export function createScriptNonce(): string {
