@@ -1,0 +1,37 @@
+flowchart LR
+    Developer[Developer]:::actor
+    Attacker[Attacker: malicious repository or web content]:::attacker
+    Git[Git executable]:::actor
+    subgraph VSCode[Visual Studio Code]
+        Search([Search Workspace]):::normal
+        Debug([Start Debug Session]):::normal
+        Commit([Commit Source Changes]):::normal
+        Steal([Steal Web Session Token]):::misuse
+        Read([Read Files Outside Webview Roots]):::misuse
+        Execute([Run Untrusted Workspace Code]):::misuse
+        Credential([Redirect Git Credentials]):::misuse
+        Prefix([Confuse Proxy Routing]):::misuse
+        Script([CSP and encoded HTML]):::control
+        Roots([Canonical root authorization]):::control
+        Trust([Workspace Trust gate]):::control
+        Host([Exact credential host check]):::control
+        Path([Decoded prefix validation]):::control
+    end
+    Developer --> Search & Debug & Commit
+    Git --- Commit
+    Attacker --> Steal & Read & Execute & Credential & Prefix
+    Steal -.->|threatens| Search
+    Read -.->|threatens| Search
+    Execute -.->|threatens| Debug
+    Credential -.->|threatens| Commit
+    Prefix -.->|threatens| Search
+    Script -->|mitigates| Steal
+    Roots -->|mitigates| Read
+    Trust -->|mitigates| Execute
+    Host -->|mitigates| Credential
+    Path -->|mitigates| Prefix
+    classDef actor fill:#e6f1ff,stroke:#3267a8
+    classDef attacker fill:#ffe7e7,stroke:#a83232
+    classDef normal fill:#e9f7ec,stroke:#287a3e
+    classDef misuse fill:#ffe7e7,stroke:#a83232
+    classDef control fill:#fff3d6,stroke:#9b6a00

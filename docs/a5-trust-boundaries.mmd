@@ -1,0 +1,31 @@
+flowchart LR
+    subgraph U[Untrusted user and browser]
+        Browser[Browser / webview]
+        Repo[Workspace repository and settings]
+    end
+    subgraph P[Unauthenticated server path]
+        HTTP[Remote HTTP router]
+    end
+    subgraph A[Authenticated server path]
+        Gate[Connection-token gate]
+        Web[WebClientServer]
+        Resource[Remote resource handler]
+    end
+    subgraph D[Host data and execution]
+        Files[(Workspace and extension files)]
+        Debug[Debug service and extension host]
+        Git[Local Git executable]
+    end
+    subgraph E[External services]
+        Gallery[Extension gallery / CDN]
+    end
+    Browser -->|1 URL, headers, token| HTTP
+    HTTP -->|2 validated token| Gate
+    Gate -->|3 forwarded prefix, locale, token cookie| Web
+    Gate -->|4 requested file path and Origin| Resource
+    Resource -->|5 file path and bytes| Files
+    Web -->|6 extension resource URL, client headers| Gallery
+    Repo -->|7 launch configuration, settings| Debug
+    Repo -->|8 repository data, remote URLs| Git
+    Debug -->|9 reads / executes local content| Files
+    Web -->|10 Set-Cookie and HTML| Browser
