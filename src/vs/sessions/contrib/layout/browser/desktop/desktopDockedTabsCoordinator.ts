@@ -22,14 +22,13 @@ import { IEditorGroup, IEditorGroupsService } from '../../../../../workbench/ser
 import { IEditorService } from '../../../../../workbench/services/editor/common/editorService.js';
 import { Parts } from '../../../../../workbench/services/layout/browser/layoutService.js';
 import { IAgentWorkbenchLayoutService } from '../../../../browser/workbench.js';
-import { DesktopChangesTabAvailableContext, DesktopChangesTabMissingContext, DesktopFilesTabAvailableContext, DesktopFilesTabMissingContext } from '../../../../common/contextkeys.js';
-import { DockedEditorInput } from '../../../../common/dockedEditorInput.js';
-import { ISessionsService } from '../../../../services/sessions/browser/sessionsService.js';
-import { SessionChangesEditorInput } from '../../../changes/browser/sessionChangesEditorInput.js';
-import { ISessionChangesService } from '../../../changes/browser/sessionChangesService.js';
-import { IChangesViewService } from '../../../changes/common/changesViewService.js';
-import { EmptyFileEditorInput } from '../../../editor/browser/emptyFileEditorInput.js';
-import { ISessionWorkspace } from '../../../../services/sessions/common/session.js';
+import { DesktopChangesTabAvailableContext, DesktopChangesTabMissingContext, DesktopFilesTabAvailableContext, DesktopFilesTabMissingContext } from '../../../../common/agentsWindowContextKeys.js';
+import { DockedEditorInput } from '../../../../../workbench/browser/parts/editor/dockedEditorInput.js';
+import { SessionChangesEditorInput } from '../../../../../workbench/contrib/sessionChanges/browser/sessionChangesEditorInput.js';
+import { ISessionChangesService } from '../../../../../workbench/contrib/sessionChanges/browser/sessionChangesService.js';
+import { IChangesViewService } from '../../../../../workbench/contrib/sessions/common/changesViewService.js';
+import { EmptyFileEditorInput } from '../../../../../workbench/contrib/sessions/browser/emptyFileEditorInput.js';
+import { ISessionWorkspace, isSessionCreated } from '../../../../../workbench/services/sessions/common/session.js';
 import { IDesktopLayoutContext } from './desktopLayoutStrategy.js';
 
 /** Options to open the Changes tab pinned first, inactive (the workbench auto-activates it only when the group is empty). */
@@ -60,7 +59,7 @@ export interface IManagedTabsTarget {
  * of this coordinator's own ambient triggers).
  */
 export interface IReconcileTrigger {
-	/** Open the default docked tabs *if the group is empty* — a session switch, a side-pane reveal, or a settled layout restore. */
+	/** Open the default docked tabs *if the group is empty* for a New Session — a session switch, a side-pane reveal, or a settled layout restore. An Existing Session leaves the empty group to the Add Tab actions. */
 	readonly openDefaultsIfEmpty?: boolean;
 	/** Activate an existing Changes tab after new-session submit so the detail panel maps to Changes rather than Files. */
 	readonly ensureChangesActive?: boolean;
@@ -127,7 +126,6 @@ export class DesktopDockedTabsCoordinator extends Disposable {
 	constructor(
 		private readonly _ctx: IDesktopLayoutContext,
 		@IAgentWorkbenchLayoutService private readonly _layoutService: IAgentWorkbenchLayoutService,
-		@ISessionsService private readonly _sessionsService: ISessionsService,
 		@IEditorService private readonly _editorService: IEditorService,
 		@IEditorGroupsService private readonly _editorGroupsService: IEditorGroupsService,
 		@ISessionChangesService private readonly _sessionChangesService: ISessionChangesService,
@@ -276,12 +274,12 @@ export class DesktopDockedTabsCoordinator extends Disposable {
 	}
 
 	private _ownerKeyString(): string | undefined {
-		const session = this._sessionsService.activeSession.get();
-		if (!session) {
+		const shown = this._ctx.shownByMainWindow();
+		if (!shown) {
 			return undefined;
 		}
-		const ownerKey = this._ctx.chatLayoutActive() ? this._ctx.ownerKeyFor(session) : undefined;
-		return (ownerKey ?? session.resource).toString();
+		const ownerKey = this._ctx.chatLayoutActive() ? this._ctx.ownerKeyFor(shown) : undefined;
+		return (ownerKey ?? shown.session.resource).toString();
 	}
 
 	prepareWorkingSetRestore(hasSavedWorkingSet: boolean): void {
@@ -311,7 +309,7 @@ export class DesktopDockedTabsCoordinator extends Disposable {
 
 	private _readTarget(reader: IReader | undefined): IManagedTabsTarget {
 		const read = <T>(obs: IObservable<T>): T => reader ? obs.read(reader) : obs.get();
-		const session = read(this._sessionsService.activeSession);
+		const session = read(this._ctx.mainWindowSession);
 		const isQuickChat = session?.isQuickChat ? read(session.isQuickChat) : false;
 		const workspace = session ? read(session.workspace) : undefined;
 		if (!session || isQuickChat || !workspace) {
@@ -411,8 +409,10 @@ export class DesktopDockedTabsCoordinator extends Disposable {
 				}
 			}
 
-			// [2] Decide which docked inputs to open, from the trigger + group state.
-			const openIntoEmpty = !!trigger.openDefaultsIfEmpty && this._layoutService.isSidePaneVisible() && group.editors.length === 0;
+			// [2] Decide which docked inputs to open, from the trigger + group state. A created
+			// session leaves an empty group empty so it offers the Add Tab actions instead.
+			const isCreated = isSessionCreated(this._ctx.mainWindowSession.get());
+			const openIntoEmpty = !!trigger.openDefaultsIfEmpty && !isCreated && this._layoutService.isSidePaneVisible() && group.editors.length === 0;
 			const changesPresent = !!changesResource && !!this._findChangesEditor(group, changesResource);
 			const filesPresent = group.editors.some(editor => editor instanceof EmptyFileEditorInput);
 			const activeChangesResource = this._editorService.activeEditor && this.getChangesEditorResource(this._editorService.activeEditor);
@@ -422,7 +422,6 @@ export class DesktopDockedTabsCoordinator extends Disposable {
 
 			const openChanges = target.wantsChangesTab && !!changesResource && (activateChanges || (!changesPresent && (openIntoEmpty || ensureAllInputs)));
 			const openFiles = target.wantsFilesTab && !filesPresent && !preserveMissingFiles && (openIntoEmpty || ensureAllInputs);
-			const isCreated = this._sessionsService.activeSession.get()?.isCreated.get() ?? false;
 			const openFilesFirst = openChanges && openFiles && !isCreated && group.editors.length === 0;
 
 			// [3] Keep Files active by default for a new-session view.
@@ -534,6 +533,7 @@ export class DesktopDockedTabsCoordinator extends Disposable {
 			editor: editorToReplace,
 			replacement: this._instantiationService.createInstance(SessionChangesEditorInput, activeChangesResource),
 			options: wasActive ? CHANGES_TAB_ACTIVE_OPTIONS : CHANGES_TAB_OPTIONS,
+			forceReplaceDirty: true,
 		}]);
 		if (isCancelled()) {
 			return;
