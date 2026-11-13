@@ -76,6 +76,8 @@ export class WebviewPortMappingManager implements IDisposable {
 		let tunnel: RemoteTunnel | undefined;
 		if (typeof tunnelOrError === 'string') {
 			tunnel = undefined;
+		} else {
+			tunnel = tunnelOrError;
 		}
 		if (tunnel) {
 			this._tunnels.set(remotePort, tunnel);

@@ -1,0 +1,11 @@
+Full Node unit suite against the Green-only compiled fix (per-worker summary, ANSI colors removed)
+
+Command: VSCODE_PID=1 node test/unit/node/index.js --workers 2 --rerun-failed-files 2
+
+19481 passing (2m)
+84 pending
+12399 passing (2m)
+159 pending
+=== Node.js unit tests: all 2 workers passed after 1m 47s ===
+
+Total across workers: 31,880 passing; 243 pending. No failure reruns were needed.

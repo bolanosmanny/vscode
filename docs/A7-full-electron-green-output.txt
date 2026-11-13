@@ -1,0 +1,15 @@
+Full Electron unit suite against the Green-only compiled fix (per-worker summary, ANSI colors removed)
+
+Command: ./scripts/test.sh --workers 4 --rerun-failed-files 2
+
+26174 passing (2m)
+173 pending
+9805 passing (2m)
+19 pending
+23590 passing (2m)
+246 pending
+13854 passing (2m)
+122 pending
+=== Electron unit tests: all 4 workers passed after 2m 14s ===
+
+Total across workers: 73,423 passing; 560 pending. No failure reruns were needed.
