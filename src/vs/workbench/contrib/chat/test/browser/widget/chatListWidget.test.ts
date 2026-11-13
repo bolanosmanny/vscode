@@ -1106,6 +1106,7 @@ suite('ChatListWidget', () => {
 			const record = async (text: string) => {
 				await timeout(0);
 				await waitForStableLayout(widget);
+				await retry(async () => assert.ok(container.textContent?.includes(text)), 100, 30);
 				states.push({
 					fullRefreshes: fullRefreshes(),
 					requests: viewModel.getItems().filter(isRequestVM).map(item => item.messageText),

@@ -1,0 +1,15 @@
+Full Node baseline, original compiled code and tests (per-worker summary, ANSI colors removed)
+
+12769 passing (1m)
+83 pending
+19101 passing (1m)
+160 pending
+=== Node.js unit tests: all 2 workers passed after 1m 11s ===
+
+Coverage summary from c8 --all:
+Statements : 26.99% (610198/2260569)
+Branches   : 84.27% (128600/152603)
+Functions  : 62.97% (24300/38589)
+Lines      : 26.99% (610198/2260569)
+
+Total across workers: 31,870 passing; 243 pending.
