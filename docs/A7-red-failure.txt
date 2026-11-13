@@ -1,0 +1,50 @@
+
+
+  WebviewPortMappingManager remote tunnel regression
+    1) successful remote tunnel redirects, is reused, and is disposed
+
+  Errors
+    ✔ should not have unexpected errors in tests
+
+
+  1 passing (3ms)
+  1 failing
+
+  1) WebviewPortMappingManager remote tunnel regression
+       successful remote tunnel redirects, is reused, and is disposed:
+
+      AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+
+  {
++   disposeCalls: 0,
++   openTunnelCalls: 2,
+-   disposeCalls: 1,
+-   openTunnelCalls: 1,
+    redirects: [
++     'http://localhost:4000/path',
++     'http://localhost:4000/path'
+-     'http://127.0.0.1:5000/path',
+-     'http://127.0.0.1:5000/path'
+    ]
+  }
+
+      + expected - actual
+
+       {
+      -  "disposeCalls": 0
+      -  "openTunnelCalls": 2
+      +  "disposeCalls": 1
+      +  "openTunnelCalls": 1
+         "redirects": [
+      -    "http://localhost:4000/path"
+      -    "http://localhost:4000/path"
+      +    "http://127.0.0.1:5000/path"
+      +    "http://127.0.0.1:5000/path"
+         ]
+       }
+      
+      at Context.<anonymous> (file://<repository>/out/vs/platform/webview/test/common/webviewPortMappingDefect.test.js:33:16)
+
+
+
