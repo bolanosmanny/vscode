@@ -1,0 +1,15 @@
+Full Electron unit suite after the condition-based test wait (per-worker summary, ANSI colors removed)
+
+Command: ./scripts/test.sh --workers 4 --rerun-failed-files 2
+
+17557 passing (2m)
+95 pending
+20018 passing (2m)
+199 pending
+17088 passing (2m)
+49 pending
+18756 passing (2m)
+221 pending
+=== Electron unit tests: all 4 workers passed after 2m 9s ===
+
+Total across workers: 73,419 passing; 564 pending. No failure reruns were needed.

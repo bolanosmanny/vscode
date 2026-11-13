@@ -1,0 +1,17 @@
+Full-suite verification
+
+Complete Node unit suite, run outside the sandbox under c8 --all:
+- Baseline: both workers passed; 31,870 passing and 243 pending across the workers.
+- Green-only fix: both workers passed; 31,880 passing and 243 pending across the workers.
+- Final: both workers passed; 31,880 passing and 243 pending across the workers.
+- The ten added passing tests are the nine characterization tests and one red/green regression test.
+- Coverage includes all 7,919 compiled core source files under out/vs, excluding tests. See a7-project-coverage-before and a7-project-coverage-after.
+
+Full Electron unit suite, run outside the sandbox:
+- The initial --coverage run had 73,422 passing, 557 pending, and one failing ChatListWidget test. The built-in coverage artifact was empty ({}), so it cannot supply a coverage percentage.
+- The same test failed alone and in two retries. A temporary compiled-output diagnostic showed the streamed text appeared after rendering caught up. I replaced a fixed delay with a condition-based wait for the expected text in the existing test, preserving its assertion.
+- Final command: ./scripts/test.sh --workers 4 --rerun-failed-files 2
+- Green-only fix: all four workers passed; 73,423 passing and 560 pending. The Green-only compiled output contained just the two-line tunnel assignment, without the later URL-rewrite refactor.
+- Final result: all four workers passed after 2m 9s; 73,419 passing and 564 pending across workers. No failure reruns were needed. The new WebviewPortMappingManager tests passed in this full run.
+
+The earlier in-sandbox full Node attempt failed on socket restrictions (including listen EPERM). The successful full Node and Electron runs above were performed outside the sandbox. Browser and integration runners were not included in these unit-suite runs.

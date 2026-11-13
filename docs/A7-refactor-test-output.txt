@@ -1,0 +1,112 @@
+Running the 7 node.js test files of the 7 files listed in docs/A7-coverage-runlist.txt
+
+
+  Arrays
+    ✔ removeFastWithoutKeepingOrder
+    ✔ findFirst
+    ✔ quickSelect
+    ✔ quickSelect validates nth
+    ✔ sortedDiff
+    ✔ delta sorted arrays
+    ✔ binarySearch
+    ✔ binarySearch2
+    ✔ distinct
+    ✔ top
+    ✔ topAsync
+    ✔ coalesce
+    ✔ coalesce - inplace
+    ✔ insert, remove
+    ✔ splice
+    ✔ findMaxBy
+    ✔ findLastMaxBy
+    ✔ findMinBy
+    ArrayQueue
+      takeWhile/takeFromEndWhile
+        ✔ TakeWhile 1
+        ✔ TakeFromEndWhile 1
+        ✔ takeWhile and takeFromEndWhile mixed
+      takeWhile/takeFromEndWhile monotonous
+        ✔ TakeWhile 1
+        ✔ TakeWhile 2
+        ✔ TakeWhile 3
+        ✔ TakeWhile 4
+        ✔ TakeWhile 5
+        ✔ TakeWhile 6
+        ✔ TakeWhile 7
+        ✔ TakeWhile 8
+        ✔ TakeWhile Empty
+
+  Collections
+    ✔ groupBy
+    ✔ equalSets
+    SetWithKey
+      ✔ size
+      ✔ add
+      ✔ delete
+      ✔ has
+      ✔ entries
+      ✔ keys and values
+      ✔ clear
+      ✔ forEach
+      ✔ iterator
+      ✔ toStringTag
+
+  JSON Parse
+    ✔ Line comment
+    ✔ Line comment - EOF
+    ✔ Line comment - \r\n
+    ✔ Line comment - EOF - \r\n
+    ✔ Block comment - single line
+    ✔ Block comment - multi line
+    ✔ Block comment - shortest match
+    ✔ No strings - double quote
+    ✔ No strings - single quote
+    ✔ Trailing comma in object
+    ✔ Trailing comma in array
+    ✔ Trailing comma
+    ✔ Trailing comma - EOF
+
+  Validation
+    object validator
+      ✔ valid input copies declared fields and discards extra fields
+      ✔ missing optional field is omitted from the result
+      ✔ invalid required field reports its property path
+    union validator
+      ✔ valid input accepts either member type
+      ✔ undefined member accepts an absent value
+      ✔ unmatched input reports the final member error
+
+  remoteHosts
+    ✔ parseAuthority hostname
+    ✔ parseAuthority ipv4
+    ✔ parseAuthority ipv6
+    ✔ parseAuthorityWithOptionalPort hostname
+    ✔ parseAuthorityWithOptionalPort ipv4
+    ✔ parseAuthorityWithOptionalPort ipv6
+    ✔ issue #151748: Error: Remote authorities containing '+' need to be resolved!
+    ✔ isLoopbackHost
+
+  WebviewPortMappingManager
+    ✔ local extension redirects a mapped localhost URL to the extension port
+    ✔ unmapped or non-HTTP URLs have no redirect
+    ✔ remote tunnel failure falls back to the configured port mapping
+
+  WebviewPortMappingManager remote tunnel regression
+    ✔ successful remote tunnel redirects, is reused, and is disposed
+
+  Loader
+    ✔ should not explode while loading
+
+  Errors
+    ✔ should not have unexpected errors in tests
+
+
+  75 passing (35ms)
+
+
+=============================== Coverage summary ===============================
+Statements   : 45.82% ( 9427/20571 )
+Branches     : 72.94% ( 302/414 )
+Functions    : 9.3% ( 121/1300 )
+Lines        : 45.82% ( 9427/20571 )
+================================================================================

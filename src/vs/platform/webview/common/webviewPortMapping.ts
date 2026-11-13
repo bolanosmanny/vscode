@@ -14,6 +14,10 @@ export interface IWebviewPortMapping {
 	readonly extensionHostPort: number;
 }
 
+function redirectToAuthority(uri: URI, authority: string): string {
+	return encodeURI(uri.with({ authority }).toString(true));
+}
+
 /**
  * Manages port mappings for a single webview.
  */
@@ -43,16 +47,12 @@ export class WebviewPortMappingManager implements IDisposable {
 						if (tunnel.tunnelLocalPort === mapping.webviewPort) {
 							return undefined;
 						}
-						return encodeURI(uri.with({
-							authority: `127.0.0.1:${tunnel.tunnelLocalPort}`,
-						}).toString(true));
+						return redirectToAuthority(uri, `127.0.0.1:${tunnel.tunnelLocalPort}`);
 					}
 				}
 
 				if (mapping.webviewPort !== mapping.extensionHostPort) {
-					return encodeURI(uri.with({
-						authority: `${requestLocalHostInfo.address}:${mapping.extensionHostPort}`
-					}).toString(true));
+					return redirectToAuthority(uri, `${requestLocalHostInfo.address}:${mapping.extensionHostPort}`);
 				}
 			}
 		}
