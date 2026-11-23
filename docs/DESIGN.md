@@ -6,7 +6,7 @@ This local CSCI 360 Final Project Part 1 work addresses [microsoft/vscode#145890
 
 The existing Increase/Decrease Editor Width and Height commands in `layoutActions.ts` call `IWorkbenchLayoutService.resizePart`. The editor group grid's `Grid.resizeView` takes a target size but no side. A baseline Chromium reproduction on this branch constructed three 300 px columns in a 900 px grid and called `grid.resizeView(middle, { width: 360 })`; widths became `[300, 360, 240]`. This demonstrates why a target size alone cannot express “grow toward left.” The existing `GridView.resizeView` delegates to `BranchNode.resizeChild`, then `SplitView.resizeView`, whose relayout chooses which other views absorb the change.
 
-Two upstream PRs already propose this issue: [#296358](https://github.com/microsoft/vscode/pull/296358) and [#337462](https://github.com/microsoft/vscode/pull/337462). Both were open when checked on 2026-11-22. This project is local course work and should not be presented as a novel upstream solution or sent upstream without resolving that overlap. Their code was inspected for design context; the implementation and tests on this branch must be reviewed as AI-assisted work.
+Two upstream PRs already propose this issue: [#296358](https://github.com/microsoft/vscode/pull/296358) and [#337462](https://github.com/microsoft/vscode/pull/337462). Both were open when checked on 2026-11-22. **PR #337462 substantially influenced this design and AI-written implementation.** Its nearest-ancestor grid traversal, pairwise SplitView sash movement, service routing, and command IDs are closely reflected here; this branch is a local adaptation with its own tests and documentation, not an independent or novel upstream solution. PR #296358 supplied the neighboring-group approach compared below. The original design-only commit preceded code; this attribution was strengthened in a later uncommitted audit revision.
 
 ## Acceptance criteria
 
@@ -23,7 +23,7 @@ No default keybindings, configurable increment, extension API, terminal-specific
 
 ## Designs considered
 
-**Chosen: move one selected grid sash.** Add a public `Grid.resizeViewInDirection(view, direction, amount)` operation and a corresponding grid-view operation. Walk from the leaf toward the root until a split on the requested axis has an adjacent child on that side. Move that split's selected sash. A SplitView operation clamps the delta against only the two children next to that sash, using the same internal size constraints as mouse sash movement. Expose the operation through `IEditorGroupsContainer`, `EditorPart`, and `EditorParts`; command handlers call it for the active group. This is more code across the base/workbench boundary, but the grid owns its topology and SplitView owns size constraints. It also makes the behavior testable below the command layer.
+**Chosen: move one selected grid sash, following PR #337462's architecture.** Add a public `Grid.resizeViewInDirection(view, direction, amount)` operation and a corresponding grid-view operation. Walk from the leaf toward the root until a split on the requested axis has an adjacent child on that side. Move that split's selected sash. A SplitView operation clamps the delta against only the two children next to that sash, using the same internal size constraints as mouse sash movement. Expose the operation through `IEditorGroupsContainer`, `EditorPart`, and `EditorParts`; command handlers call it for the active group. This is more code across the base/workbench boundary, but the grid owns its topology and SplitView owns size constraints. It also makes the behavior testable below the command layer. This branch keeps a fixed 60 px step, whereas PR #337462 also supports an optional command increment argument.
 
 **Rejected: shrink the editor group found by `findGroup({ direction })`.** This is viable for two adjacent leaves and uses existing `setSize`, as in upstream PR #296358. It is a poor general fit: `findGroup` orders geometric neighbors by editor-group MRU and returns one leaf, while a grid boundary can separate a leaf from a nested subtree. `setSize` still asks generic relayout to choose the space recipient and does not promise preservation of other siblings. A visual neighbor is not necessarily the child adjacent to the sash that must move.
 
@@ -33,7 +33,7 @@ I do not assume the existing `Grid.resizeView` guarantees directional behavior: 
 
 ## Placement and coupling
 
-The existing [logical architecture](Logical-Architecture.md) and [diagram source](logical-architecture.mmd) place `src/vs/workbench` above `src/vs/base`. This feature follows that dependency direction:
+The existing [logical architecture](Logical-Architecture.md) and [diagram source](logical-architecture.mmd) now mark the directional-resize command, editor-group route, and Grid/SplitView foundation path. This feature follows the diagram's `src/vs/workbench` to `src/vs/base` dependency direction:
 
 ```mermaid
 flowchart LR

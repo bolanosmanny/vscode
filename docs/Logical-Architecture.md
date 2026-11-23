@@ -16,6 +16,8 @@ flowchart TB
         SCMUI["contrib/scm"]
         SearchSvc["services/search/common"]
         DebugCommon["contrib/debug/common"]
+        ResizeAction["browser/actions/layoutActions.ts — directional resize"]
+        EditorGroups["services/editor + browser/parts/editor"]
     end
 
     subgraph Editor["Editor layer — src/vs/editor"]
@@ -30,6 +32,7 @@ flowchart TB
     end
 
     Base["Foundation — src/vs/base/common and browser"]
+    GridSplit["Foundation UI — src/vs/base/browser/ui/grid + splitview"]
 
     subgraph Extension["Built-in Git extension — extensions/git/src"]
         GitCommands["commands.ts"]
@@ -49,6 +52,9 @@ flowchart TB
     EditorModel -->|imports| Instantiation
     Files -->|imports| Base
     SearchSvc -->|imports| Base
+    ResizeAction -->|imports service contract| EditorGroups
+    EditorGroups -->|imports| GridSplit
+    GridSplit -->|imports| Base
     GitCommands -->|imports| GitRepository
     GitRepository -->|imports| GitProcess
     GitCommands -->|imports vscode| API
@@ -56,7 +62,7 @@ flowchart TB
     GitProcess -->|imports vscode| API
 ```
 
-The Search-to-SCM arrow is the cross-feature dependency discussed in section 4. The Git arrows are confirmed by the imports in [`commands.ts`](https://github.com/bolanosmanny/vscode/blob/main/extensions/git/src/commands.ts#L8), [`repository.ts`](https://github.com/bolanosmanny/vscode/blob/main/extensions/git/src/repository.ts#L14), and [`git.ts`](https://github.com/bolanosmanny/vscode/blob/main/extensions/git/src/git.ts#L15). The editor and platform arrows are visible in [`codeEditorWidget.ts`](https://github.com/bolanosmanny/vscode/blob/main/src/vs/editor/browser/widget/codeEditor/codeEditorWidget.ts#L55), [`modelService.ts`](https://github.com/bolanosmanny/vscode/blob/main/src/vs/editor/common/services/modelService.ts#L13), and [`fileService.ts`](https://github.com/bolanosmanny/vscode/blob/main/src/vs/platform/files/common/fileService.ts#L6).
+The Search-to-SCM arrow is the cross-feature dependency discussed in section 4. The Git arrows are confirmed by the imports in [`commands.ts`](https://github.com/bolanosmanny/vscode/blob/main/extensions/git/src/commands.ts#L8), [`repository.ts`](https://github.com/bolanosmanny/vscode/blob/main/extensions/git/src/repository.ts#L14), and [`git.ts`](https://github.com/bolanosmanny/vscode/blob/main/extensions/git/src/git.ts#L15). The editor and platform arrows are visible in [`codeEditorWidget.ts`](https://github.com/bolanosmanny/vscode/blob/main/src/vs/editor/browser/widget/codeEditor/codeEditorWidget.ts#L55), [`modelService.ts`](https://github.com/bolanosmanny/vscode/blob/main/src/vs/editor/common/services/modelService.ts#L13), and [`fileService.ts`](https://github.com/bolanosmanny/vscode/blob/main/src/vs/platform/files/common/fileService.ts#L6). The directional-resize path added for the Final Project marks the command-to-editor-group contract and the editor group's dependency on Grid/SplitView; its implementation is described in [DESIGN.md](DESIGN.md).
 
 ## 3. Object interaction diagrams
 

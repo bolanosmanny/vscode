@@ -5,6 +5,8 @@ flowchart TB
         SCMUI["contrib/scm"]
         SearchSvc["services/search/common"]
         DebugCommon["contrib/debug/common"]
+        ResizeAction["browser/actions/layoutActions.ts — directional resize"]
+        EditorGroups["services/editor + browser/parts/editor"]
     end
 
     subgraph Editor["Editor layer — src/vs/editor"]
@@ -19,6 +21,7 @@ flowchart TB
     end
 
     Base["Foundation — src/vs/base/common and browser"]
+    GridSplit["Foundation UI — src/vs/base/browser/ui/grid + splitview"]
 
     subgraph Extension["Built-in Git extension — extensions/git/src"]
         GitCommands["commands.ts"]
@@ -38,6 +41,9 @@ flowchart TB
     EditorModel -->|imports| Instantiation
     Files -->|imports| Base
     SearchSvc -->|imports| Base
+    ResizeAction -->|imports service contract| EditorGroups
+    EditorGroups -->|imports| GridSplit
+    GridSplit -->|imports| Base
     GitCommands -->|imports| GitRepository
     GitRepository -->|imports| GitProcess
     GitCommands -->|imports vscode| API
