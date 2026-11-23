@@ -253,6 +253,27 @@ suite('Splitview', () => {
 		assert.strictEqual(view3.size, 40, 'view3 is stretched');
 	});
 
+	test('moving a sash changes only its adjacent views and respects their maximum size', () => {
+		const views = [
+			store.add(new TestView(100, 1000)),
+			store.add(new TestView(100, 400)),
+			store.add(new TestView(100, 1000))
+		];
+		const splitview = store.add(new SplitView(container));
+		splitview.layout(900);
+		for (const view of views) {
+			splitview.addView(view, 300);
+		}
+		splitview.distributeViewSizes();
+
+		splitview.resizeSash(0, -60);
+		assert.deepStrictEqual(views.map(view => view.size), [240, 360, 300]);
+		splitview.resizeSash(1, 500);
+		assert.deepStrictEqual(views.map(view => view.size), [240, 400, 260]);
+		splitview.resizeSash(1, 60);
+		assert.deepStrictEqual(views.map(view => view.size), [240, 400, 260]);
+	});
+
 	test('reacts to view changes', () => {
 		const view1 = store.add(new TestView(20, Number.POSITIVE_INFINITY));
 		const view2 = store.add(new TestView(20, Number.POSITIVE_INFINITY));

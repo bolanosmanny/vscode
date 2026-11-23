@@ -19,7 +19,7 @@ Two upstream PRs already propose this issue: [#296358](https://github.com/micros
 
 ## Exclusions
 
-No default keybindings, configurable increment, extension API, terminal-specific sizing, cross-window resize, new UI, or changes to the existing width/height commands. A user can bind the new command IDs in Keyboard Shortcuts. These exclusions keep the feature tied to the issue's boundary selection problem and avoid a new preference without clear requirements.
+No default keybindings, configurable increment, extension API, terminal-specific sizing, resizing across window boundaries, new UI, or changes to the existing width/height commands. The active group may belong to an auxiliary editor part; its own grid is resized in place. A user can bind the new command IDs in Keyboard Shortcuts. These exclusions keep the feature tied to the issue's boundary selection problem and avoid a new preference without clear requirements.
 
 ## Designs considered
 

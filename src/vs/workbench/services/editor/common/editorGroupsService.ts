@@ -378,7 +378,11 @@ export interface IEditorGroupsContainer {
 	 */
 	setSize(group: IEditorGroup | GroupIdentifier, size: { width: number; height: number }): void;
 
-	/** Grow the group's named edge by moving the nearest boundary, within size limits. */
+	/**
+	 * Grow the group's named edge by moving the nearest boundary in the given direction.
+	 * A negative amount shrinks that edge. Does nothing when there is no boundary on that side
+	 * or when either adjacent grid child has reached its size limit.
+	 */
 	resizeGroup(group: IEditorGroup | GroupIdentifier, direction: GroupDirection, amount: number): void;
 
 	/**

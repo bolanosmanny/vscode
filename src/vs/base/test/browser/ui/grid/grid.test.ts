@@ -161,6 +161,21 @@ suite('Grid', function () {
 		assert.deepStrictEqual(views.map(view => view.size), [[225, 600], [375, 250], [300, 600], [375, 350]]);
 	});
 
+	test('directional resize restores a maximized group before moving its boundary', () => {
+		const left = store.add(new TestView(50, 1000, 50, 1000));
+		const right = store.add(new TestView(50, 1000, 50, 1000));
+		const grid = store.add(new Grid(left));
+		container.appendChild(grid.element);
+		grid.layout(800, 600);
+		grid.addView(right, 400, left, Direction.Right);
+		grid.maximizeView(right);
+
+		grid.resizeViewInDirection(right, Direction.Left, 60);
+		assert.deepStrictEqual({ maximized: grid.hasMaximizedView(), sizes: [left.size, right.size] }, {
+			maximized: false, sizes: [[340, 600], [460, 600]]
+		});
+	});
+
 	test('simple layout', function () {
 		const view1 = store.add(new TestView(50, Number.MAX_VALUE, 50, Number.MAX_VALUE));
 		const grid = store.add(new Grid(view1));
