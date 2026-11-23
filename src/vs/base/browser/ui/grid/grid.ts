@@ -545,6 +545,13 @@ export class Grid<T extends IView = IView> extends Disposable {
 		return this.gridview.resizeView(location, size);
 	}
 
+	/** Grow a view by moving its nearest boundary in the given direction. */
+	resizeViewInDirection(view: T, direction: Direction, amount: number): void {
+		const orientation = direction === Direction.Left || direction === Direction.Right ? Orientation.HORIZONTAL : Orientation.VERTICAL;
+		const before = direction === Direction.Left || direction === Direction.Up;
+		this.gridview.resizeViewInDirection(this.getViewLocation(view), orientation, before, amount);
+	}
+
 	/**
 	 * Returns whether all other {@link IView views} are at their minimum size.
 	 *

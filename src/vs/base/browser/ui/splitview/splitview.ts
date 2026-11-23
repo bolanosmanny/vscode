@@ -1074,6 +1074,32 @@ export class SplitView<TLayoutContext = undefined, TView extends IView<TLayoutCo
 		}
 	}
 
+	/** Move a sash while resizing only the two views beside it, subject to their size limits. */
+	resizeSash(index: number, delta: number): void {
+		if (index < 0 || index >= this.viewItems.length - 1 || !Number.isFinite(delta) || Math.round(delta) === 0) {
+			return;
+		}
+
+		if (this.state !== State.Idle) {
+			throw new Error('Cant modify splitview');
+		}
+
+		this.state = State.Busy;
+		try {
+			const before = this.viewItems[index];
+			const after = this.viewItems[index + 1];
+			const minDelta = Math.max(before.minimumSize - before.size, after.size - after.maximumSize);
+			const maxDelta = Math.min(before.maximumSize - before.size, after.size - after.minimumSize);
+			const appliedDelta = this.resize(index, Math.round(delta), undefined, undefined, undefined, minDelta, maxDelta);
+			if (appliedDelta !== 0) {
+				this.layoutViews();
+				this.saveProportions();
+			}
+		} finally {
+			this.state = State.Idle;
+		}
+	}
+
 	/**
 	 * Returns whether all other {@link IView views} are at their minimum size.
 	 */

@@ -378,6 +378,9 @@ export interface IEditorGroupsContainer {
 	 */
 	setSize(group: IEditorGroup | GroupIdentifier, size: { width: number; height: number }): void;
 
+	/** Grow the group's named edge by moving the nearest boundary, within size limits. */
+	resizeGroup(group: IEditorGroup | GroupIdentifier, direction: GroupDirection, amount: number): void;
+
 	/**
 	 * Arrange all groups in the container according to the provided arrangement.
 	 */

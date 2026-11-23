@@ -24,6 +24,8 @@ import { IContextKeyService, RawContextKey } from '../../../../../platform/conte
 import { Emitter } from '../../../../../base/common/event.js';
 import { isEqual } from '../../../../../base/common/resources.js';
 import { CloseAllEditorGroupsAction } from '../../../../browser/parts/editor/editorActions.js';
+import { CommandsRegistry } from '../../../../../platform/commands/common/commands.js';
+import '../../../../browser/actions/layoutActions.js';
 import { IWorkbenchLayoutService, Parts, Position } from '../../../layout/browser/layoutService.js';
 import { ActiveEditorContext } from '../../../../common/contextkeys.js';
 
@@ -1484,6 +1486,62 @@ suite('EditorGroupsService', () => {
 
 		assert.strictEqual(rightGroup, part.findGroup({ direction: GroupDirection.RIGHT }, rootGroup));
 		assert.strictEqual(rootGroup, part.findGroup({ direction: GroupDirection.LEFT }, rightGroup));
+	});
+
+	test('directional editor commands resize the active group toward the selected neighbor', async () => {
+		const [part, instantiationService] = await createPart();
+		part.layout(900, 600, 0, 0);
+		const left = part.activeGroup;
+		const middle = part.addGroup(left, GroupDirection.RIGHT);
+		const right = part.addGroup(middle, GroupDirection.RIGHT);
+		part.arrangeGroups(GroupsArrangement.EVEN);
+		part.activateGroup(middle);
+		const groups = [left, middle, right];
+		const before = groups.map(group => part.getSize(group));
+
+		instantiationService.invokeFunction(CommandsRegistry.getCommand('workbench.action.resizeEditorLeft')!.handler);
+		assert.deepStrictEqual(groups.map(group => part.getSize(group)), [
+			{ ...before[0], width: before[0].width - 60 },
+			{ ...before[1], width: before[1].width + 60 },
+			before[2]
+		]);
+
+		instantiationService.invokeFunction(CommandsRegistry.getCommand('workbench.action.resizeEditorRight')!.handler);
+		assert.deepStrictEqual(groups.map(group => part.getSize(group)), [
+			{ ...before[0], width: before[0].width - 60 },
+			{ ...before[1], width: before[1].width + 120 },
+			{ ...before[2], width: before[2].width - 60 }
+		]);
+		assert.strictEqual(part.activeGroup, middle);
+	});
+
+	test('vertical directional commands and missing neighbors', async () => {
+		const [part, instantiationService] = await createPart();
+		part.layout(600, 900, 0, 0);
+		const top = part.activeGroup;
+		const middle = part.addGroup(top, GroupDirection.DOWN);
+		const bottom = part.addGroup(middle, GroupDirection.DOWN);
+		part.arrangeGroups(GroupsArrangement.EVEN);
+		part.activateGroup(middle);
+		const groups = [top, middle, bottom];
+		const before = groups.map(group => part.getSize(group));
+
+		instantiationService.invokeFunction(CommandsRegistry.getCommand('workbench.action.resizeEditorUp')!.handler);
+		assert.deepStrictEqual(groups.map(group => part.getSize(group)), [
+			{ ...before[0], height: before[0].height - 60 },
+			{ ...before[1], height: before[1].height + 60 },
+			before[2]
+		]);
+		instantiationService.invokeFunction(CommandsRegistry.getCommand('workbench.action.resizeEditorDown')!.handler);
+		assert.deepStrictEqual(groups.map(group => part.getSize(group)), [
+			{ ...before[0], height: before[0].height - 60 },
+			{ ...before[1], height: before[1].height + 120 },
+			{ ...before[2], height: before[2].height - 60 }
+		]);
+		part.activateGroup(top);
+		const after = groups.map(group => part.getSize(group));
+		instantiationService.invokeFunction(CommandsRegistry.getCommand('workbench.action.resizeEditorUp')!.handler);
+		assert.deepStrictEqual(groups.map(group => part.getSize(group)), after);
 	});
 
 	test('find neighbour group (up/down)', async function () {

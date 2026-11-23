@@ -111,6 +111,56 @@ suite('Grid', function () {
 		assert.deepStrictEqual(view2.size, [300, 600]);
 	});
 
+	test('directional resize moves only the selected side of three columns', () => {
+		const views = [0, 1, 2].map(() => store.add(new TestView(50, 1000, 50, 1000)));
+		const grid = store.add(new Grid(views[0]));
+		container.appendChild(grid.element);
+		grid.layout(900, 600);
+		grid.addView(views[1], 300, views[0], Direction.Right);
+		grid.addView(views[2], 300, views[1], Direction.Right);
+		grid.distributeViewSizes();
+
+		grid.resizeViewInDirection(views[1], Direction.Left, 60);
+		assert.deepStrictEqual(views.map(view => view.width), [240, 360, 300]);
+		grid.resizeViewInDirection(views[1], Direction.Right, 25);
+		assert.deepStrictEqual(views.map(view => view.width), [240, 385, 275]);
+	});
+
+	test('directional resize stops at a neighbor minimum and ignores outer edges', () => {
+		const views = [0, 1, 2].map(() => store.add(new TestView(100, 1000, 50, 1000)));
+		const grid = store.add(new Grid(views[0]));
+		container.appendChild(grid.element);
+		grid.layout(900, 600);
+		grid.addView(views[1], 300, views[0], Direction.Right);
+		grid.addView(views[2], 300, views[1], Direction.Right);
+		grid.distributeViewSizes();
+
+		grid.resizeViewInDirection(views[0], Direction.Left, 60);
+		grid.resizeViewInDirection(views[2], Direction.Right, 60);
+		grid.resizeViewInDirection(views[1], Direction.Left, Number.POSITIVE_INFINITY);
+		assert.deepStrictEqual(views.map(view => view.width), [300, 300, 300]);
+		grid.resizeViewInDirection(views[1], Direction.Left, 500);
+		assert.deepStrictEqual(views.map(view => view.width), [100, 500, 300]);
+		grid.resizeViewInDirection(views[1], Direction.Left, 60);
+		assert.deepStrictEqual(views.map(view => view.width), [100, 500, 300]);
+	});
+
+	test('directional resize selects a nested ancestor boundary', () => {
+		const views = [0, 1, 2, 3].map(() => store.add(new TestView(50, 1000, 50, 1000)));
+		const grid = store.add(new Grid(views[0]));
+		container.appendChild(grid.element);
+		grid.layout(900, 600);
+		grid.addView(views[1], 300, views[0], Direction.Right);
+		grid.addView(views[2], 300, views[1], Direction.Right);
+		grid.distributeViewSizes();
+		grid.addView(views[3], 300, views[1], Direction.Down);
+
+		grid.resizeViewInDirection(views[3], Direction.Left, 75);
+		assert.deepStrictEqual(views.map(view => view.size), [[225, 600], [375, 300], [300, 600], [375, 300]]);
+		grid.resizeViewInDirection(views[3], Direction.Up, 50);
+		assert.deepStrictEqual(views.map(view => view.size), [[225, 600], [375, 250], [300, 600], [375, 350]]);
+	});
+
 	test('simple layout', function () {
 		const view1 = store.add(new TestView(50, Number.MAX_VALUE, 50, Number.MAX_VALUE));
 		const grid = store.add(new Grid(view1));

@@ -33,7 +33,7 @@ import { IKeybindingService } from '../../../platform/keybinding/common/keybindi
 import { TitlebarStyle } from '../../../platform/window/common/window.js';
 import { IPreferencesService } from '../../services/preferences/common/preferences.js';
 import { QuickInputAlignmentContextKey } from '../../../platform/quickinput/browser/quickInput.js';
-import { IEditorGroupsService } from '../../services/editor/common/editorGroupsService.js';
+import { GroupDirection, IEditorGroupsService } from '../../services/editor/common/editorGroupsService.js';
 
 // Register Icons
 const menubarIcon = registerIcon('menuBar', Codicon.layoutMenubar, localize('menuBarIcon', "Represents the menu bar"));
@@ -1278,6 +1278,24 @@ registerAction2(IncreaseViewHeightAction);
 registerAction2(DecreaseViewSizeAction);
 registerAction2(DecreaseViewWidthAction);
 registerAction2(DecreaseViewHeightAction);
+
+for (const { id, title, direction } of [
+	{ id: 'workbench.action.resizeEditorLeft', title: localize2('resizeEditorLeft', "Resize Editor Left"), direction: GroupDirection.LEFT },
+	{ id: 'workbench.action.resizeEditorRight', title: localize2('resizeEditorRight', "Resize Editor Right"), direction: GroupDirection.RIGHT },
+	{ id: 'workbench.action.resizeEditorUp', title: localize2('resizeEditorUp', "Resize Editor Up"), direction: GroupDirection.UP },
+	{ id: 'workbench.action.resizeEditorDown', title: localize2('resizeEditorDown', "Resize Editor Down"), direction: GroupDirection.DOWN }
+]) {
+	registerAction2(class extends BaseResizeViewAction {
+		constructor() {
+			super({ id, title, f1: true });
+		}
+
+		run(accessor: ServicesAccessor): void {
+			const editorGroupsService = accessor.get(IEditorGroupsService);
+			editorGroupsService.resizeGroup(editorGroupsService.activeGroup, direction, BaseResizeViewAction.RESIZE_INCREMENT);
+		}
+	});
+}
 
 //#region Quick Input Alignment Actions
 
