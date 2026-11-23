@@ -35,7 +35,7 @@ The registered command handlers are covered by browser tests. I also tested the 
 | `pnpm run typecheck-client` | Final audit rerun: `$ tsc --project ./src/tsconfig.json --noEmit --skipLibCheck`; exit code 0, no diagnostics. An earlier run failed with `TS2445` before the action was changed to extend the existing base class. |
 | `pnpm run oxlint` on all 11 changed TypeScript files listed by `git diff main --name-only` | Final audit rerun: `oxlint: checked 11 files in 599ms with 1 process (the slowest took 362ms).`; exit code 0. |
 | `pnpm run hygiene` | Final audit rerun: `Hygiene checked 14922 files in 7814ms.`; exit code 0. There is no separate repository formatter script; hygiene is the project style check used here. |
-| `./scripts/test.sh --reporter dot --timeout 10000` | Earlier full Electron unit suite (before the newest test edits): `77128 passing (8m)`, `569 pending`; exit code 0. Electron also printed `task_policy_set TASK_SUPPRESSION_POLICY: (os/kern) invalid argument (4)` during shutdown. |
+| `./scripts/test.sh --reporter dot --timeout 10000` | Final full Electron unit suite, run after the newest test edits: `77129 passing (8m)`, `569 pending`; exit code 0. |
 | `git diff --check` | Passed with no output. |
 
 ## Exclusions, compatibility, and reviewer questions

@@ -55,12 +55,12 @@ pnpm run hygiene
 Hygiene checked 14922 files in 7814ms.
 
 ./scripts/test.sh --reporter dot --timeout 10000
-77128 passing (8m)
+77129 passing (8m)
 569 pending
 exit code 0
 ```
 
-An initial type check failed with `TS2445` because a protected resize-step constant was accessed from an unrelated class. The action was changed to extend the existing base class; the final type check passed. The full Electron output above comes from a run before the newest test edits; Electron also printed `task_policy_set TASK_SUPPRESSION_POLICY: (os/kern) invalid argument (4)` during shutdown after the passing summary. The first sandboxed Chromium attempt in the final audit failed with `listen EPERM: operation not permitted ::1`; the approved retry passed.
+An initial type check failed with `TS2445` because a protected resize-step constant was accessed from an unrelated class. The action was changed to extend the existing base class; the final type check passed. I reran the full Electron unit suite after the newest test edits; it exited with code 0. The first sandboxed Chromium attempt in the final audit failed with `listen EPERM: operation not permitted ::1`; the approved retry passed.
 
 I ran Code - OSS and tested the commands in a three-column layout. With the middle group active, Resize Editor Left widened the middle group, narrowed the left group, and left the right group unchanged. Resize Editor Right affected only the middle and right groups. Resize Editor Left did nothing when the leftmost group was active. In a nested layout with two groups in the middle column, Resize Editor Up changed only their heights, and Resize Editor Left widened the middle column while leaving the right column unchanged.
 
