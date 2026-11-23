@@ -1513,6 +1513,29 @@ suite('EditorGroupsService', () => {
 			{ ...before[2], width: before[2].width - 60 }
 		]);
 		assert.strictEqual(part.activeGroup, middle);
+
+		part.activateGroup(left);
+		const atLeftEdge = groups.map(group => part.getSize(group));
+		instantiationService.invokeFunction(CommandsRegistry.getCommand('workbench.action.resizeEditorLeft')!.handler);
+		assert.deepStrictEqual(groups.map(group => part.getSize(group)), atLeftEdge);
+	});
+
+	test('negative directional amount shrinks the named edge of an editor group', async () => {
+		const [part] = await createPart();
+		part.layout(900, 600, 0, 0);
+		const left = part.activeGroup;
+		const middle = part.addGroup(left, GroupDirection.RIGHT);
+		const right = part.addGroup(middle, GroupDirection.RIGHT);
+		part.arrangeGroups(GroupsArrangement.EVEN);
+		const groups = [left, middle, right];
+		const before = groups.map(group => part.getSize(group));
+
+		part.resizeGroup(middle, GroupDirection.LEFT, -40);
+		assert.deepStrictEqual(groups.map(group => part.getSize(group)), [
+			{ ...before[0], width: before[0].width + 40 },
+			{ ...before[1], width: before[1].width - 40 },
+			before[2]
+		]);
 	});
 
 	test('vertical directional commands and missing neighbors', async () => {
